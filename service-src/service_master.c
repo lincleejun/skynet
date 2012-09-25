@@ -48,7 +48,7 @@ master_release(struct master * m) {
 	int i;
 	for (i=0;i<REMOTE_MAX;i++) {
 		int fd = m->remote_fd[i];
-		if (fd < 0) {
+		if (fd > 0) {
 			close(fd);
 		}
 		free(m->remote_addr[i]);
@@ -174,6 +174,12 @@ _broadcast(struct skynet_context * context, struct master *m, const char *name, 
 			if (fd < 0) {
 				m->remote_fd[i] = -1;
 				skynet_error(context, "Reconnect to harbor %d : %s faild", i, m->remote_addr[i]);
+			}
+			else {
+				if (_send_to(fd, name, sz, handle)) {
+					close(fd);
+					m->remote_fd[i] = -1;
+				}
 			}
 		}
 	}
